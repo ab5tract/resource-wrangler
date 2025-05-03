@@ -1,0 +1,15 @@
+{
+    "name": "moduleName",
+    "description": "Write me!",
+    "version": "0.1",
+    "raku": "6.*",
+    "auth": "Write me!",
+    "provides": {
+        "Resource::Wrangler": "lib/Resource/Wrangler.rakumod"
+    },
+    "resources": [
+        "test"
+    ],
+    "license": "Write me!",
+    "source-url": "Write me!"
+}

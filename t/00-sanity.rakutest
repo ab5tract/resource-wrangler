@@ -1,0 +1,15 @@
+use v6.d;
+use Resource::Wrangler;
+use Test;
+
+my $path;
+lives-ok {
+    $path = load-resource-to-path("test")
+}, "Survives loading resource to path";
+
+ok $path eq "/tmp/test", "The path is as expected";
+
+ok $path.IO.slurp eq "simpleainteasy",
+    "Contents are exactly as they should be";
+
+done-testing;
