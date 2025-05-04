@@ -7,7 +7,15 @@ lives-ok {
     $path = load-resource-to-path("test")
 }, "Survives loading resource to path";
 
-ok $path eq "/tmp/test", "The path is as expected";
+
+# TODO: Figure out how to make ~$?DISTRIBUTION work in test context
+{
+    use nqp;
+    my $hardcode = "D5916E99E5E60B6D7FBD00949E3EF62C67F80614";
+#    ok ~$path eq ~$*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION)).add("/test"),
+    ok ~$path eq ~$*TMPDIR.add($hardcode).add("test"),
+        "The path is as expected";
+}
 
 ok $path.IO.slurp eq "simpleainteasy",
     "Contents are exactly as they should be";
