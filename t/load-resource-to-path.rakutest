@@ -2,6 +2,8 @@ use v6.d;
 use Resource::Wrangler;
 use Test;
 
+plan 3;
+
 my $path;
 lives-ok {
     $path = load-resource-to-path("test")
@@ -20,5 +22,3 @@ lives-ok {
 
 ok $path.IO.slurp eq "sometimes-simple-is-actually-simple",
     "Contents are exactly as they should be";
-
-done-testing;
