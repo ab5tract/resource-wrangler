@@ -3,7 +3,7 @@
     "description": "A small helper function to ensure non-clashing temporary storage of items in %?RESOURCES",
     "version": "0.42.0",
     "raku": "6.*",
-    "auth": "ab5tract",
+    "auth": "zef:ab5tract",
     "provides": {
         "Resource::Wrangler": "lib/Resource/Wrangler.rakumod"
     },
