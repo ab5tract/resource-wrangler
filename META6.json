@@ -1,15 +1,16 @@
 {
-    "name": "moduleName",
-    "description": "Write me!",
-    "version": "0.1",
+    "name": "Resource::Wrangler",
+    "description": "A small helper function to ensure non-clashing temporary storage of items in %?RESOURCES",
+    "version": "0.42.0",
     "raku": "6.*",
-    "auth": "Write me!",
+    "auth": "ab5tract",
     "provides": {
         "Resource::Wrangler": "lib/Resource/Wrangler.rakumod"
     },
     "resources": [
         "test"
     ],
-    "license": "Write me!",
-    "source-url": "Write me!"
+    "license": "Artistic 2.0",
+    "api": "1",
+    "source-url": "https://github.com/ab5tract/resource-wrangler"
 }
