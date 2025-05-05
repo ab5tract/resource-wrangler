@@ -4,19 +4,16 @@ use Test;
 
 plan 3;
 
+
 my $path;
+my $random-id = Resource::Wrangler::random-sequence;
 lives-ok {
-    $path = load-resource-to-path("test")
+    $path = load-resource-to-path("test", :$random-id)
 }, "Survives loading resource to path";
 
 
 {
-    use nqp;
-    # TODO: Figure out how to make ~$?DISTRIBUTION work in test context
-    #    ok ~$path eq ~$*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION)).add("/test"),
-
-    my $hardcode = "B73A1FCA6F092095A516A7C1AB423CEED51CAF48";
-    ok ~$path eq ~$*TMPDIR.add($hardcode).add("test"),
+    ok ~$path.parent eq ~$*TMPDIR.add($random-id),
         "The path is as expected";
 }
 

@@ -7,19 +7,34 @@ unit module Resource::Wrangler;
 ## for readability.
 multi sub trait_mod:<is>(Routine $r, :$cached!) { ... }
 
+# We make it available but we don't export it
+our sub random-sequence {
+    state @chars ||= [ |('A'..'Z'), |('a'..'z'), |(^10) ];
+    @chars.roll(32).join
+}
+
 use nqp;
 sub load-resource-to-path(
         Str $resource,
-        IO::Path :$prefix = $*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION))
+        Str :$random-id = random-sequence,
+        IO::Path :$prefix = $*TMPDIR.add($random-id)
 --> IO::Path) is cached is export {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
         my $resource-handle = %?RESOURCES{$resource}
             // die "Unable to access resource '$resource': $!";
 
+        while $prefix.IO.d {
+            $prefix = $*TMPDR.add(random-sequence);
+        }
         mkdir $prefix;
-        my $safe-path = $prefix.add($resource.comb.grep(/\w/).join);
-        $safe-path.spurt: :bin, $resource-handle.slurp(:bin);
+
+        my $safe-path = $prefix.add(random-sequence);
+        while $safe-path.IO.d {
+            $safe-path = $prefix.add(random-sequence);
+        }
+
+        $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
         $safe-path
     }
 }
