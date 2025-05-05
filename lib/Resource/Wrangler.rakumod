@@ -8,12 +8,12 @@ unit module Resource::Wrangler;
 multi sub trait_mod:<is>(Routine $r, :$cached!) { ... }
 
 use nqp;
-my $lock = Lock.new;
 sub load-resource-to-path(
         Str $resource,
         IO::Path :$prefix = $*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION))
 --> IO::Path) is cached is export {
-    protected -> {
+    state $call-lock //= Lock.new;
+    $call-lock.protect: -> {
         my $resource-handle = %?RESOURCES{$resource}
             // die "Unable to access resource '$resource': $!";
 
@@ -22,11 +22,6 @@ sub load-resource-to-path(
         $safe-path.spurt: :bin, $resource-handle.slurp(:bin);
         $safe-path
     }
-}
-
-sub protected(&callable where *.arity == 0) {
-    state $call-lock //= Lock.new;
-    $call-lock.protect: &callable
 }
 
 ## This a direct copy of the version in Rakudo experimental.
