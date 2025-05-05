@@ -13,7 +13,7 @@ sub load-resource-to-path(
         Str $resource,
         IO::Path :$prefix = $*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION))
 --> IO::Path) is cached is export {
-    $lock.protect: {
+    protected -> {
         my $resource-handle = %?RESOURCES{$resource}
             // die "Unable to access resource '$resource': $!";
 
@@ -22,6 +22,11 @@ sub load-resource-to-path(
         $safe-path.spurt: :bin, $resource-handle.slurp(:bin);
         $safe-path
     }
+}
+
+sub protected(&callable where *.arity == 0) {
+    state $call-lock //= Lock.new;
+    $call-lock.protect: &callable
 }
 
 ## This a direct copy of the version in Rakudo experimental.

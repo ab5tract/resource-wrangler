@@ -15,7 +15,7 @@ lives-ok {
     # TODO: Figure out how to make ~$?DISTRIBUTION work in test context
     #    ok ~$path eq ~$*TMPDIR.add(nqp::sha1(~$?DISTRIBUTION)).add("/test"),
 
-    my $hardcode = "67A78C114717D5C327D8B1B13ECA1C6A0584E6F6";
+    my $hardcode = "B73A1FCA6F092095A516A7C1AB423CEED51CAF48";
     ok ~$path eq ~$*TMPDIR.add($hardcode).add("test"),
         "The path is as expected";
 }
