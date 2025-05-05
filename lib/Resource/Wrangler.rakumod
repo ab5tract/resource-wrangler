@@ -16,8 +16,8 @@ our sub random-sequence {
 use nqp;
 sub load-resource-to-path(
         Str $resource,
-        Str :$random-id = random-sequence,
-        IO::Path :$prefix = $*TMPDIR.add($random-id)
+        Str :$filename = random-sequence,                   #| This is the file name
+        IO::Path :$prefix = $*TMPDIR.add(random-sequence)   #| This is the prefix in the $*TMPDIR
 --> IO::Path) is cached is export {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
@@ -29,8 +29,8 @@ sub load-resource-to-path(
         }
         mkdir $prefix;
 
-        my $safe-path = $prefix.add(random-sequence);
-        while $safe-path.IO.d {
+        my $safe-path = $prefix.add($filename);
+        while $safe-path.IO.e {
             $safe-path = $prefix.add(random-sequence);
         }
 

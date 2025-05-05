@@ -6,16 +6,13 @@ plan 3;
 
 
 my $path;
-my $random-id = Resource::Wrangler::random-sequence;
+my $filename = Resource::Wrangler::random-sequence;
+my $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
 lives-ok {
-    $path = load-resource-to-path("test", :$random-id)
+    $path = load-resource-to-path("test", :$filename, :$prefix)
 }, "Survives loading resource to path";
 
-
-{
-    ok ~$path.parent eq ~$*TMPDIR.add($random-id),
-        "The path is as expected";
-}
+ok ~$path eq ~$prefix.add($filename), "The path is as expected";
 
 ok $path.IO.slurp eq "sometimes-simple-is-actually-simple",
     "Contents are exactly as they should be";
