@@ -19,10 +19,10 @@ multi method load-resource-to-path(
 --> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        my $resource = self.resources{$resource}.first
+        my $resource-maybe = self.resources{$resource}
             // fail "Unable to access resource '$resource': {$! // ""}";
 
-        if (my $resource-handle = $resource.IO) ~~ Empty {
+        if (my $resource-handle = $resource-maybe.IO) ~~ Empty {
             return fail "Resource '$resource' is not provided by the distribution";
         }
 
@@ -48,10 +48,10 @@ multi method load-resource-to-path(
 --> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        my $resource = self.resources{$resource}
+        my $resource-maybe = self.resources{$resource}
             // fail "Unable to access resource '$resource': {$! // ""}";
 
-        if (my $resource-handle = $resource.IO) ~~ Empty {
+        if (my $resource-handle = $resource-maybe.IO) ~~ Empty {
             return fail "Resource '$resource' is not provided by the distribution";
         }
 
