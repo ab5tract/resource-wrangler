@@ -1,7 +1,7 @@
 {
     "name": "Resource::Wrangler",
     "description": "A small helper function to ensure non-clashing temporary storage of items in %?RESOURCES",
-    "version": "1.2.1",
+    "version": "2.0.0",
     "raku": "6.*",
     "auth": "zef:ab5tract",
     "provides": {

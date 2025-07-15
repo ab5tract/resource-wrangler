@@ -2,17 +2,29 @@ use v6.*;
 use Resource::Wrangler;
 use Test;
 
-plan 3;
+plan 5;
 
+my $w = Resource::Wrangler[{ %("test" => "{~$*CWD}/resources/test".IO) }].new;
+
+is ~$w.resources<test>, "{~$*CWD}/resources/test", "Parameterization works";
+
+dies-ok {
+    use fatal;
+    my $path = $w.load-resource-to-path("nonexistent-resource");
+    CATCH {
+        ok $_.message ~~ /^^ "Unable to access resource "/,
+            "Exception message is correct ({$_.message}";
+    }
+}, "loading a nonexistent-resource dies as expected";
 
 my $path;
-my $filename = Resource::Wrangler::random-sequence;
-my $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
+my $filename = $w.random-sequence;
+my $prefix = $*TMPDIR.add: $w.random-sequence;
 lives-ok {
-    $path = load-resource-to-path("test", :$filename, :$prefix)
+    $path = $w.load-resource-to-path("test", :$filename, :$prefix)
 }, "Survives loading resource to path";
 
-ok ~$path eq ~$prefix.add($filename), "The path is as expected";
+is ~$path, ~$prefix.add($filename), "The path is as expected";
 
-ok $path.IO.slurp eq "sometimes-simple-is-actually-simple",
+is $path.IO.slurp, "sometimes-simple-is-actually-simple",
     "Contents are exactly as they should be";

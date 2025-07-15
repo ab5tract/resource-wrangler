@@ -4,21 +4,24 @@ use Test;
 
 plan 3;
 
+constant W = Resource::Wrangler[{ %( test => "{~$*CWD}/resources/test".IO ) }].new;
 
 my $path;
 my $resource = "test";
 # This test requires randomization so that it will succeed when installed twice
 # TODO: Switch to removing these created paths and using a "hard-wired" path?
-my $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
+my $prefix = $*TMPDIR.add(W.random-sequence);
 while $prefix.d {
-    $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
+    $prefix = $*TMPDIR.add(W.random-sequence);
 }
 
 lives-ok {
-    $path = load-resource-to-path($resource, :$prefix, :manual)
+    $path = W.load-resource-to-path($resource, :$prefix, :manual)
 }, "Survives loading resource to path";
 
-ok ~$path eq ~$prefix.add($resource), "The path is as expected";
+dd :$prefix, :$resource, :$path;
 
-ok $path.IO.slurp eq "sometimes-simple-is-actually-simple",
+is ~$prefix.add($resource), ~$path,  "The path is as expected";
+
+is $path.IO.slurp, "sometimes-simple-is-actually-simple",
     "Contents are exactly as they should be";

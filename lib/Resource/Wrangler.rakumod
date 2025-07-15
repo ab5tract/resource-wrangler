@@ -1,44 +1,39 @@
 use v6.*;
 
-unit module Resource::Wrangler;
+unit role Resource::Wrangler[&RES];
 
-## This a direct copy of the version in Rakudo experimental.
-## It's not a great general purpose cache but for our purposes
-## it is perfect, with the addition of the file existence check.
-multi sub trait_mod:<is>(Routine $r, :$cached!) {
-    my %cache;
-    $r.wrap(-> |c {
-        my $key := c.Str;
-        %cache.EXISTS-KEY($key) && %cache{$key}.e
-            ?? %cache{$key}
-            !! (%cache{$key} := callsame);
-    });
-}
+method resources() { RES() }
+
+## This is to limit our footprint if the same file is accessed
+## many times.
+has %!cache;
 
 # We make it available but we don't export it
-our sub random-sequence {
+method random-sequence {
     state @chars ||= [ |('A'..'Z'), |('a'..'z'), |(^10) ];
     @chars.roll(32).join
 }
 
-multi sub load-resource-to-path(
+
+multi method load-resource-to-path(
         Str  $resource,
-        Str  :$filename = random-sequence,
-        IO() :$prefix = $*TMPDIR.add(random-sequence)
---> IO::Path) is cached is export {
+        Str  :$filename = $resource,
+        IO() :$prefix!,
+        Bool :$manual!
+--> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        my $resource-handle = %?RESOURCES{$resource}
-            // die "Unable to access resource '$resource': $!";
+        my $resource-handle = self.resources{$resource}
+            // fail "Unable to access resource '$resource': {$! // ""}";
 
-        while $prefix.IO.d {
-            $prefix = $*TMPDIR.add(random-sequence);
+        # Here we try to create the prefix if not already existing
+        unless $prefix.d {
+            mkdir($prefix) or fail "Could not make path '$prefix': $!";
         }
-        mkdir $prefix;
 
         my $safe-path = $prefix.add($filename);
-        while $safe-path.IO.e {
-            $safe-path = $prefix.add(random-sequence);
+        if $safe-path.IO.e {
+            fail "Path '{~$safe-path}' already exists';"
         }
 
         $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
@@ -46,28 +41,30 @@ multi sub load-resource-to-path(
     }
 }
 
-multi sub load-resource-to-path(
+multi method load-resource-to-path(
         Str  $resource,
-        Str  :$filename = $resource,
-        IO() :$prefix!,
-        Bool :$manual!
---> IO::Path) is cached is export {
+        Str  :$filename = self.random-sequence,
+        IO() :$prefix = $*TMPDIR.add(self.random-sequence)
+--> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        my $resource-handle = %?RESOURCES{$resource}
-            // die "Unable to access resource '$resource': $!";
+        return %!cache{$resource} if %!cache{$resource}:exists;
 
-        # Here we try to create the prefix if not already existing
-        unless $prefix.d {
-            mkdir($prefix) or die "Could not make path '$prefix': $!";
+        my $resource-handle = self.resources{$resource}
+            // fail "Unable to access resource '$resource': {$! // ""}";
+
+        while $prefix.IO.d {
+            $prefix = $*TMPDIR.add(self.random-sequence);
         }
+        mkdir $prefix;
 
         my $safe-path = $prefix.add($filename);
-        if $safe-path.IO.e {
-            die "Path '{~$safe-path}' already exists';"
+        while $safe-path.IO.e {
+            $safe-path = $prefix.add(self.random-sequence);
         }
 
         $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
         $safe-path
+        %!cache{$resource} = $safe-path
     }
 }

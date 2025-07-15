@@ -18,6 +18,17 @@ With `Resource::Wrangler`, it becomes simple to get either
 a randomized path location (for a bit of security, where
 it matters) or to copy the resource to a specific path.
 
+The major "trick" that is required for it to work, however,
+is that your consuming module needs to pass it's own resource
+map as a role parameter to `Resource::Wrangler`.
+
+Most often it will look like this:
+
+    my $wrangler = Resource::Wrangler[{ %?RESOURCES }].new
+
+But you can also create your own map (`Str` => `IO`). In fact,
+that's how the tests are implemented.
+
 ### Randomized Path Location
 
 The following code will copy the resource from the location
@@ -25,7 +36,8 @@ deep within `%?RESOURCES` to a location based on randomized
 path components (under `$*TMPDIR`):
 
     use Resource::Wrangler;
-    my IO::Path $path = try load-resource-to-path("resource-name.png");
+    constant WR = Resource::Wrangler[{ %?RESOURCES }].new;
+    my IO::Path $path = WR.load-resource-to-path("resource-name.png");
     say $path.Str
     # >>> "/tmp/j0gbX6hUQjh20Qqf5BxAyVsanRLkDMVE/KAHsTx9m7pkE0jhMbdBdj63bp1Rjd7PI"
 
@@ -50,7 +62,8 @@ you can provide your own value for the `filename`
 The `prefix` and `manual` named parameters are required:
 
     use Resource::Wrangler;
-    my IO::Path $path = try load-resource-to-path(
+    my $wr = Resource::Wrangler[{ %?RESOURCES }].new;
+    my IO::Path $path = $wr.load-resource-to-path(
                                 "resource-name.png",
                                 filename => "output-name.png",
                                 prefix => $*HOME.add("known/safe/path"),
