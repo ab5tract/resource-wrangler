@@ -4,17 +4,13 @@ unit role Resource::Wrangler[&RES];
 
 method resources() { RES() }
 
-## This is to limit our footprint if the same file is accessed
-## many times.
-has %!cache;
-
 # We make it available but we don't export it
 method random-sequence {
     state @chars ||= [ |('A'..'Z'), |('a'..'z'), |(^10) ];
     @chars.roll(32).join
 }
 
-
+# This candidate gives direct control over the output path
 multi method load-resource-to-path(
         Str  $resource,
         Str  :$filename = $resource,
@@ -23,8 +19,12 @@ multi method load-resource-to-path(
 --> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        my $resource-handle = self.resources{$resource}
+        my $resource = self.resources{$resource}.first
             // fail "Unable to access resource '$resource': {$! // ""}";
+
+        if (my $resource-handle = $resource.IO) ~~ Empty {
+            return fail "Resource '$resource' is not provided by the distribution";
+        }
 
         # Here we try to create the prefix if not already existing
         unless $prefix.d {
@@ -36,7 +36,7 @@ multi method load-resource-to-path(
             fail "Path '{~$safe-path}' already exists';"
         }
 
-        $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
+        $safe-path.spurt: $resource-handle.IO.slurp(:bin, :close), :bin, :close;
         $safe-path
     }
 }
@@ -48,10 +48,12 @@ multi method load-resource-to-path(
 --> IO::Path) {
     state $call-lock //= Lock.new;
     $call-lock.protect: -> {
-        return %!cache{$resource} if %!cache{$resource}:exists;
-
-        my $resource-handle = self.resources{$resource}
+        my $resource = self.resources{$resource}
             // fail "Unable to access resource '$resource': {$! // ""}";
+
+        if (my $resource-handle = $resource.IO) ~~ Empty {
+            return fail "Resource '$resource' is not provided by the distribution";
+        }
 
         while $prefix.IO.d {
             $prefix = $*TMPDIR.add(self.random-sequence);
@@ -65,6 +67,5 @@ multi method load-resource-to-path(
 
         $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
         $safe-path
-        %!cache{$resource} = $safe-path
     }
 }

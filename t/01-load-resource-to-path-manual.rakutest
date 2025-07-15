@@ -19,8 +19,6 @@ lives-ok {
     $path = W.load-resource-to-path($resource, :$prefix, :manual)
 }, "Survives loading resource to path";
 
-dd :$prefix, :$resource, :$path;
-
 is ~$prefix.add($resource), ~$path,  "The path is as expected";
 
 is $path.IO.slurp, "sometimes-simple-is-actually-simple",

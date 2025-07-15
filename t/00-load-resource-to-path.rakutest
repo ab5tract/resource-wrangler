@@ -2,9 +2,12 @@ use v6.*;
 use Resource::Wrangler;
 use Test;
 
-plan 5;
+plan 8;
 
-my $w = Resource::Wrangler[{ %("test" => "{~$*CWD}/resources/test".IO) }].new;
+my $w = Resource::Wrangler[{ %(
+    test => "{~$*CWD}/resources/test".IO,
+    broken => class :: { method IO { Empty } }.new
+) }].new;
 
 is ~$w.resources<test>, "{~$*CWD}/resources/test", "Parameterization works";
 
@@ -16,6 +19,15 @@ dies-ok {
             "Exception message is correct ({$_.message}";
     }
 }, "loading a nonexistent-resource dies as expected";
+
+dies-ok {
+    use fatal;
+    my $path = $w.load-resource-to-path("broken");
+    CATCH {
+        is $_.message, "Resource 'broken' is not provided by the distribution",
+            "Exception message is correct";
+    }
+}, "Loading a resource that acts like Distribution::Resource but doesn't exist";
 
 my $path;
 my $filename = $w.random-sequence;
