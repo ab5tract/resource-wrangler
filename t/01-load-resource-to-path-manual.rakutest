@@ -7,7 +7,13 @@ plan 3;
 
 my $path;
 my $resource = "test";
-my $prefix = $*TMPDIR.add("totally-determined");
+# This test requires randomization so that it will succeed when installed twice
+# TODO: Switch to removing these created paths and using a "hard-wired" path?
+my $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
+while $prefix.d {
+    $prefix = $*TMPDIR.add(Resource::Wrangler::random-sequence);
+}
+
 lives-ok {
     $path = load-resource-to-path($resource, :$prefix, :manual)
 }, "Survives loading resource to path";
