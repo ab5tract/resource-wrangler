@@ -1,0 +1,18 @@
+use v6.*;
+use Resource::Wrangler;
+use Test;
+
+plan 3;
+
+
+my $path;
+my $resource = "test";
+my $prefix = $*TMPDIR.add("totally-determined");
+lives-ok {
+    $path = load-resource-to-path($resource, :$prefix, :manual)
+}, "Survives loading resource to path";
+
+ok ~$path eq ~$prefix.add($resource), "The path is as expected";
+
+ok $path.IO.slurp eq "sometimes-simple-is-actually-simple",
+    "Contents are exactly as they should be";
