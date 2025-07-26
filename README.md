@@ -29,6 +29,40 @@ Most often it will look like this:
 But you can also create your own map (`Str` => `IO`). In fact,
 that's how the tests are implemented.
 
+### On dependency injection
+
+`Resource::Wrangler` can be integrated into a project in a 
+number of ways, but the most flexible is to "inject" a
+`Resource::Wrangler` object as a constructor argument on
+the consuming class.
+
+    class Resourceful {
+        has $.resources handles <AT-KEY>
+            = Resource::Wrangler[{ %?RESOURCES }].new;
+    }
+
+
+By setting the default initializer to use the current
+CompUnit's `%?RESOURCES`, we ensure that the default behavior
+will Do What I Mean.
+
+However, when writing tests, you can inject a mocked hash:
+
+    use Test;
+    use Resourceful;
+    
+    my %resources = test => "/tmp/test".IO;
+    my $resourceful = Resourceful.new:
+        :resources(Resource::Wrangler[-> { %resources }].new);
+    
+    is "/tmp/test".IO, $resourceful<< $name >>, "injected!";
+
+Note that when using prepared hashes this way, it is necessary
+to include a signature to the block so that it isn't seen
+as a hash initializer by the Raku grammar.
+
+Doing this inline
+
 ### Randomized Path Location
 
 The following code will copy the resource from the location
@@ -78,7 +112,8 @@ could have been written:
 
 ### Security Notes
 
-There must always be some tension between security and usability.
+There will always be tension between security and usability.
+
 It is possible that attackers can exploit any deterministic resource
 naming scheme to allow arbitrary loading of malicious stuffs.
 
@@ -96,7 +131,7 @@ a glaring hole in the implementation of this module, please file
 a ticket on the GitHub repository and it will be resolved
 as soon as possible.
 
-Please use responsibly.
+tl;dr - Use responsibly and Don't Panic.
 
 ## License
 

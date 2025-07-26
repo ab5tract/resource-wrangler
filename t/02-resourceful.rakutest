@@ -1,0 +1,15 @@
+use Test;
+use Resource::Wrangler;
+
+class Resourceful {
+    has $.resources handles <AT-KEY> = Resource::Wrangler[{ %?RESOURCES }].new;
+
+    method load($name) {
+        $!resources.load-resource-to-path($name)
+    }
+}
+
+my %resources = test => "/tmp/test".IO;
+my $resourceful = Resourceful.new: resources => Resource::Wrangler[-> { %resources }].new;
+
+is "/tmp/test".IO, $resourceful<test>, "Dependency injection works as expected";

@@ -4,7 +4,6 @@ unit role Resource::Wrangler[&RES];
 
 method resources() { RES() }
 
-# We make it available but we don't export it
 method random-sequence {
     state @chars ||= [ |('A'..'Z'), |('a'..'z'), |(^10) ];
     @chars.roll(32).join
@@ -68,4 +67,8 @@ multi method load-resource-to-path(
         $safe-path.spurt: $resource-handle.slurp(:bin, :close), :bin, :close;
         $safe-path
     }
+}
+
+method AT-KEY(Str() $key) {
+    self.resources<< $key >>;
 }
