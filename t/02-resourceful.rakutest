@@ -1,6 +1,8 @@
 use Test;
 use Resource::Wrangler;
 
+plan 1;
+
 class Resourceful {
     has $.resources handles <AT-KEY> = Resource::Wrangler[{ %?RESOURCES }].new;
 
@@ -8,8 +10,13 @@ class Resourceful {
         $!resources.load-resource-to-path($name)
     }
 }
+my $file-name = "/tmp/test-res-wrangler-{(^5).roll(6).join}";
+my %resources = test => $file-name.IO;
+my $injectable = Resource::Wrangler[-> { %resources }].new;
+my $resourceful = Resourceful.new: :resources($injectable);
 
-my %resources = test => "/tmp/test".IO;
-my $resourceful = Resourceful.new: resources => Resource::Wrangler[-> { %resources }].new;
+dd $resourceful<test>;
 
-is "/tmp/test".IO, $resourceful<test>, "Dependency injection works as expected";
+is $file-name.IO, $resourceful<test>, "Dependency injection works as expected";
+
+done-testing;
